@@ -1,7 +1,3 @@
-//Exercícios de revisão Flutter
-  //1
-
-
 import 'package:flutter/material.dart';
 
 void main() {
@@ -12,130 +8,96 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'SM Mobile App',
+      title: 'Lista de Comidas',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.green,
       ),
-      home: UserInfoForm(),
+      home: FoodListScreen(),
     );
   }
 }
 
-class UserInfoForm extends StatefulWidget {
+class FoodListScreen extends StatefulWidget {
   @override
-  _UserInfoFormState createState() => _UserInfoFormState();
+  _FoodListScreenState createState() => _FoodListScreenState();
 }
 
-class _UserInfoFormState extends State<UserInfoForm> {
-  final _formKey = GlobalKey<FormState>();
+class _FoodListScreenState extends State<FoodListScreen> {
+  final List<FoodItem> _foodItems = [
+    FoodItem(name: 'Pizza', price: 20.0),
+    FoodItem(name: 'Hambúrguer', price: 15.0),
+    FoodItem(name: 'Sushi', price: 25.0),
+    FoodItem(name: 'Salada', price: 10.0),
+    FoodItem(name: 'Sorvete', price: 5.0),
+  ];
 
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _ageController = TextEditingController();
-  final TextEditingController _addressController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _phoneController = TextEditingController();
+  final Set<FoodItem> _selectedItems = {};
 
-  void _submitData() {
-    if (_formKey.currentState!.validate()) {
-      final name = _nameController.text;
-      final age = _ageController.text;
-      final address = _addressController.text;
-      final email = _emailController.text;
-      final phone = _phoneController.text;
+  void _toggleSelection(FoodItem item) {
+    setState(() {
+      if (_selectedItems.contains(item)) {
+        _selectedItems.remove(item);
+      } else {
+        _selectedItems.add(item);
+      }
+    });
+  }
 
-      // Exibir as informações no terminal do VSCode
-      print('Nome: $name');
-      print('Idade: $age');
-      print('Endereço: $address');
-      print('Email: $email');
-      print('Telefone: $phone');
-
-      // Limpar os campos após a submissão
-      _nameController.clear();
-      _ageController.clear();
-      _addressController.clear();
-      _emailController.clear();
-      _phoneController.clear();
-    }
+  double _calculateTotal() {
+    return _selectedItems.fold(0.0, (sum, item) => sum + item.price);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Informações Pessoais'),
+        title: Text('Lista de Comidas'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: [
-              TextFormField(
-                controller: _nameController,
-                decoration: InputDecoration(labelText: 'Nome'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor, insira seu nome';
-                  }
-                  return null;
-                },
-              ),
-              TextFormField(
-                controller: _ageController,
-                decoration: InputDecoration(labelText: 'Idade'),
-                keyboardType: TextInputType.number,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor, insira sua idade';
-                  }
-                  return null;
-                },
-              ),
-              TextFormField(
-                controller: _addressController,
-                decoration: InputDecoration(labelText: 'Endereço'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor, insira seu endereço';
-                  }
-                  return null;
-                },
-              ),
-              TextFormField(
-                controller: _emailController,
-                decoration: InputDecoration(labelText: 'Email'),
-                keyboardType: TextInputType.emailAddress,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor, insira seu email';
-                  }
-                  if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
-                    return 'Por favor, insira um email válido';
-                  }
-                  return null;
-                },
-              ),
-              TextFormField(
-                controller: _phoneController,
-                decoration: InputDecoration(labelText: 'Telefone'),
-                keyboardType: TextInputType.phone,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor, insira seu telefone';
-                  }
-                  return null;
-                },
-              ),
-              SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _submitData,
-                child: Text('Enviar'),
-              ),
-            ],
+      body: Column(
+        children: [
+          Expanded(
+            child: ListView.builder(
+              itemCount: _foodItems.length,
+              itemBuilder: (context, index) {
+                final item = _foodItems[index];
+                final isSelected = _selectedItems.contains(item);
+
+                return ListTile(
+                  title: Text(item.name),
+                  trailing: Text('R\$ ${item.price.toStringAsFixed(2)}'),
+                  tileColor: isSelected ? Colors.green[100] : null,
+                  onTap: () => _toggleSelection(item),
+                );
+              },
+            ),
           ),
-        ),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Text(
+              'Total: R\$ ${_calculateTotal().toStringAsFixed(2)}',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
       ),
     );
   }
+}
+
+class FoodItem {
+  final String name;
+  final double price;
+
+  FoodItem({required this.name, required this.price});
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is FoodItem &&
+          runtimeType == other.runtimeType &&
+          name == other.name &&
+          price == other.price;
+
+  @override
+  int get hashCode => name.hashCode ^ price.hashCode;
 }
